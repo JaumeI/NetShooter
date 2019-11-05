@@ -4,9 +4,11 @@ import socket, sys, threading, Player, queue, pygame, os, select
     TCP_IP = '127.0.0.1'
 else:
     TCP_IP = sys.argv[0]'''
+MAX_CLIENTS = 2
+
 #Definir la finestra
 pygame.init()
-MAX_CLIENTS = 2
+
 #Demanem la mida del monitor
 mw = pygame.display.Info().current_w
 mh = pygame.display.Info().current_h
@@ -23,13 +25,15 @@ os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (int((mw/2)-(screensize/2)),int((
 DISPLAYSURF=pygame.display.set_mode((screensize,screensize))
 
 # Posem el nom a la finestra
-pygame.display.set_caption("NetShooter")
+pygame.display.set_caption("NetShooter Server")
 
 clock=pygame.time.Clock()
 
 #Creem servidor
 TCP_IP = '127.0.0.1'
+TCP_IP = ''
 TCP_PORT = 44223
+print("Escoltant amb adreça " + TCP_IP + " al port " + str(TCP_PORT))
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server_socket.bind((TCP_IP, TCP_PORT))
@@ -38,7 +42,7 @@ server_socket.bind((TCP_IP, TCP_PORT))
 server_socket.listen(5)
 
 
-players = {}#[pygame.sprite.Sprite() for x in range(MAX_CLIENTS)]
+players = {}
 
 ships = pygame.sprite.Group()
 
