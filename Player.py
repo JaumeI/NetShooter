@@ -1,53 +1,62 @@
-import pygame
+import pygame, socket, threading
 
 
-def juga(conn,cua,player, SCREENSIZE, rect):
-    print ("Jugador "+str(player))
-    speed = 10
+class Player(pygame.sprite.Sprite):
 
-    rect.x = 100*player + 30
-    rect.y = 100*player + 30
+    def __init__(self, connexio, screensize, playerN):
+        super().__init__()
+        self.conn = connexio
+        #self.cua = cua
+        self.screensize = screensize
+        self.playerN = playerN
+        fileName = "ship"+str(playerN)+".png"
+        self.image = pygame.image.load("images/"+fileName).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (int(screensize/20),int(screensize/20)))
+        self.rect = self.image.get_rect()
 
-    if rect.x > SCREENSIZE:
-        rect.x = 0
-        rect.y  = 0
+        startX = int((screensize/8*self.playerN) + int(self.rect.width*self.playerN))
+        startY = int((screensize/8*self.playerN) + int(self.rect.height*self.playerN))
 
+        self.rect.x=startX
+        self.rect.y=startY
+
+        self.speed = 10
+        self.isAlive = True
+
+        #threading._start_new_thread(juga, (self,cua))
+        self.thread = threading._start_new_thread(juga,(self,))
+
+def juga(self):
     end = False
-    shoot=False
+    self.shoot=False
     shootTimer=2000
     lastShotTime=pygame.time.get_ticks()
 
     while not end:
-        shoot=False
-        stringKey = (conn.recv(24)).decode()
+        self.shoot=False
+        stringKey = (self.conn.recv(24)).decode()
         print (stringKey)
-        KEY = int(stringKey)
-        print("Player: " + str(player))
+        if len(stringKey)>0:
+            KEY = int(stringKey)
 
-        if KEY==pygame.K_RIGHT and rect.x+rect.width+speed < SCREENSIZE:
-            rect.x+=speed 
-            print("Right")
-        elif KEY==pygame.K_LEFT and rect.x-speed > 0 :
-            rect.x-=speed
-            print("Left") 
-        elif KEY==pygame.K_UP and rect.y-speed > 0:
-            rect.y-=10
-            print("Up")
-        elif KEY==pygame.K_DOWN and rect.y+rect.height+speed < SCREENSIZE:
-            rect.y+=10
-            print("Down")
+        if KEY==pygame.K_RIGHT and self.rect.x+self.rect.width+self.speed < self.screensize:
+            self.rect.x+=self.speed
+        elif KEY==pygame.K_LEFT and self.rect.x-self.speed > 0 :
+            self.rect.x-=self.speed
+        elif KEY==pygame.K_UP and self.rect.y-self.speed > 0:
+            self.rect.y-=10
+        elif KEY==pygame.K_DOWN and self.rect.y+self.rect.height+self.speed < self.screensize:
+            self.rect.y+=10
         elif KEY==pygame.K_SPACE:
             now = pygame.time.get_ticks()
             timeSinceLastShot = now - lastShotTime
             if timeSinceLastShot >= shootTimer:
-                shoot=True
+                self.shoot=True
                 timeSinceLastShot = now
-            print("Shoot")
         elif KEY==pygame.K_ESCAPE:
             end=True
-            print("End")
+            self.isAlive = False
+            self.conn.close()
 
-        cua.put((player,rect, shoot))
-        print("Player: " + str(player)+" " + str(rect)+" " + str(shoot))
     
     
